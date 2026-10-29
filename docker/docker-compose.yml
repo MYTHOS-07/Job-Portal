@@ -1,0 +1,52 @@
+# docker-compose.yml
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: myjobportal
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dev -d myjobportal" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - "5341:80"
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_ADMINPASSWORD: Admin@12345
+    volumes:
+      - seq_data:/data
+
+  emailserver:
+    image: rnwood/smtp4dev:prerelease
+    container_name: JobPortalEmail
+    ports:
+      - "2525:25"
+      - "3000:80"
+    volumes:
+      - smtp4dev-data:/smtp4dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  seq_data:
+  smtp4dev-data:
+  
